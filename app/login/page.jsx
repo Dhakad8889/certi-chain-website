@@ -19,11 +19,13 @@ export default function LoginPage() {
       return
     }
     setSubmitting(true)
-    setInfo("Login successful! Redirecting to dashboard...")
+    setInfo("Login successful! Redirecting to Aadhaar verification...")
     // simulate login
     setTimeout(() => {
       sessionStorage.setItem("instituteLoggedIn", "true")
-      router.push("/institution")
+      // require Aadhaar verification step after login
+      sessionStorage.removeItem("instituteAadhaarVerified")
+      router.push("/login/aadhaar")
     }, 1200)
   }
 

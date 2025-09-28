@@ -5,9 +5,11 @@ import Header from "@/components/site/header"
 import { ThemeProvider } from "@/components/site/theme-context"
 import FileUpload, { FileList } from "@/components/site/file-upload"
 import ProgressSteps from "@/components/site/progress-steps"
+import AadhaarVerify, { AadhaarBadge } from "@/components/site/aadhaar-verify"
 
 export default function VerificationPage() {
   const [aadhaar, setAadhaar] = useState("")
+  const [aadhaarVerified, setAadhaarVerified] = useState(false)
   const [files, setFiles] = useState([])
   const [submitting, setSubmitting] = useState(false)
   const [active, setActive] = useState(-1)
@@ -16,7 +18,7 @@ export default function VerificationPage() {
 
   function onSubmit(e) {
     e.preventDefault()
-    if (!files.length) return
+    if (!files.length || !aadhaarVerified) return
     setSubmitting(true)
     setResult(null)
     simulate()
@@ -64,20 +66,29 @@ export default function VerificationPage() {
 
         <div className="rounded-2xl border border-border bg-card p-6">
           <h2 className="text-lg font-semibold mb-4">📋 Certificate Verification</h2>
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium">Student&apos;s Aadhaar Number</label>
-              <input
-                inputMode="numeric"
-                pattern="[0-9]{12}"
-                maxLength={12}
-                placeholder="Enter 12-digit Aadhaar number"
-                className="w-full rounded-lg border-2 border-input bg-background px-4 py-2"
-                value={aadhaar}
-                onChange={(e) => setAadhaar(e.target.value.replace(/\D/g, "").slice(0, 12))}
-                required
+          {/* Aadhaar gate */}
+          {!aadhaarVerified ? (
+            <div className="mb-5">
+              <div className="mb-2 text-sm font-medium">Aadhaar Verification</div>
+              <AadhaarVerify
+                onSuccess={(num) => {
+                  setAadhaar(num)
+                  setAadhaarVerified(true)
+                }}
+                title="Aadhaar Verification"
               />
+              <p className="mt-2 text-xs text-muted-foreground">
+                Verify Aadhaar to proceed with document verification.
+              </p>
             </div>
+          ) : (
+            <div className="mb-5">
+              <AadhaarBadge aadhaar={aadhaar} />
+            </div>
+          )}
+
+          <form onSubmit={onSubmit} className="space-y-4">
+            {/* Upload */}
             <div>
               <label className="mb-2 block text-sm font-medium">Upload Certificate to Verify</label>
               <FileUpload
@@ -93,8 +104,8 @@ export default function VerificationPage() {
 
             <button
               type="submit"
-              disabled={submitting || !files.length || aadhaar.length !== 12}
-              className="w-full rounded-lg bg-primary px-4 py-2 font-semibold text-primary-foreground"
+              disabled={submitting || !files.length || !aadhaarVerified}
+              className="w-full rounded-lg bg-primary px-4 py-2 font-semibold text-primary-foreground disabled:opacity-60"
             >
               {submitting ? "Verifying..." : "Verify Certificate"}
             </button>
@@ -119,6 +130,9 @@ export default function VerificationPage() {
                   </div>
                   <div className="mt-2 text-sm">
                     ⛓️ Blockchain Verified — Hash: <span className="font-mono">{result.data.hash}</span>
+                  </div>
+                  <div className="mt-2 text-sm">
+                    Aadhaar matched: <span className="font-mono">{`${aadhaar.slice(0, 4)}-xxxx-xxxx`}</span>
                   </div>
                 </div>
               ) : (

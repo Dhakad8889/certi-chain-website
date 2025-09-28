@@ -16,7 +16,15 @@ export default function InstitutionPage() {
 
   useEffect(() => {
     const logged = sessionStorage.getItem("instituteLoggedIn") === "true"
-    if (!logged) router.replace("/login")
+    const aadhaarOk = sessionStorage.getItem("instituteAadhaarVerified") === "true"
+    if (!logged) {
+      router.replace("/login")
+      return
+    }
+    if (!aadhaarOk) {
+      router.replace("/login/aadhaar")
+      return
+    }
   }, [router])
 
   function processBulk() {
